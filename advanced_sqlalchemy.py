@@ -56,7 +56,7 @@ if __name__ == "__main__":
     # For now we will use our old method to clear the db
     reset_database(engine)
 
-    # Insert into database
+    # Insert into table
     with Session(engine) as session:
         sigma_bot = Lecturer(
             lecturer_name="SigmaBot"
@@ -64,16 +64,20 @@ if __name__ == "__main__":
         session.add(sigma_bot)
         session.commit()
 
-    # Select from database
+    # Select from table (by id)
     with Session(engine) as session:
         # We can easily refer to any entity by primary key
         by_id = session.get(Lecturer, 1)
-
     print(by_id.lecturer_name)
 
+    # Select from table (by attribute)
     with Session(engine) as session:
-        by_name = session.scalar(
-            select(Lecturer).where(Lecturer.lecturer_name == "SigmaBot"))
+        # Build an SQL statement out of python code
+        stmt = select(Lecturer).where(Lecturer.lecturer_name == "SigmaBot")
+
+        # We can use .scalar to run our statement
+        by_name = session.scalar(stmt)
+
     print(by_name.lecturer_name)
 
     # Beautiful OOP code instead of multiline SQL strings everywhere!
