@@ -52,31 +52,57 @@ class StudentCourse(Base):
     student_id: Mapped[int] = mapped_column(ForeignKey("student.student_id"))
 
 
-if __name__ == "__main__":
-    # For now we will use our old method to clear the db
-    reset_database(engine)
-
-    # Insert into table
+def insert_lecturer(engine: Engine, name: str):
+    """Easy insert with no SQL code necessary"""
     with Session(engine) as session:
-        sigma_bot = Lecturer(
-            lecturer_name="SigmaBot"
-        )
-        session.add(sigma_bot)
+        lecturer = Lecturer(lecturer_name=name)
+        session.add(lecturer)
+        session.commit()
+    return lecturer
+
+
+def insert_lecturers(engine: Engine, names: list[str]):
+    """Just pass a list of names and this will insert a new lecturer for each one!"""
+    with Session(engine) as session:
+        lecturers = [Lecturer(lecturer_name=name)
+                     for name in names]
+        session.add_all(lecturers)
         session.commit()
 
-    # Select from table (by id)
-    with Session(engine) as session:
-        # We can easily refer to any entity by primary key
-        by_id = session.get(Lecturer, 1)
-    print(by_id.lecturer_name)
+    return lecturers
 
-    # Select from table (by attribute)
+
+def get_by_key(engine: Engine, table: type, key: int):
+    with Session(engine) as session:
+        row = session.get(table, key)
+    return row
+
+
+def select_lecturer_by_name(engine: Engine, name: str):
     with Session(engine) as session:
         # Build an SQL statement out of python code
         stmt = select(Lecturer).where(Lecturer.lecturer_name == "SigmaBot")
 
         # We can use .scalar to run our statement
         by_name = session.scalar(stmt)
+
+    return by_name
+
+
+if __name__ == "__main__":
+    # For now we will use our old method to clear the db
+    reset_database(engine)
+
+    # Insert into table
+    insert_lecturer(engine, "SigmaBot")
+
+    # Select from table (by id)
+    lecturer = get_by_key(engine, Lecturer, 1)
+
+    print(lecturer.lecturer_name)
+
+    # Select from lecturer table (by name)
+    by_name = select_lecturer_by_name(engine, "SigmaBot")
 
     print(by_name.lecturer_name)
 
